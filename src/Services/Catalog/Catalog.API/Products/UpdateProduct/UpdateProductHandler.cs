@@ -1,13 +1,21 @@
-﻿using BuildingBlocks.CQRS;
-using Catalog.API.Exceptions;
-using Catalog.API.Models;
-using Marten;
+﻿using Catalog.API.Exceptions;
 
 namespace Catalog.API.Products.UpdateProduct
 {
     public record UpdateProductCommand(Guid Id, string Name, List<string> Category, string Description, string ImageFile, decimal Price)
         : ICommand<UpdateProductResult>;
     public record UpdateProductResult(bool IsSuccess);
+
+    public class UpdateProductCommandValidator: AbstractValidator<UpdateProductCommand>
+    {
+        public UpdateProductCommandValidator()
+        {
+            RuleFor(x => x.Id).NotEmpty().WithMessage("Product Id is required");
+            RuleFor(x => x.Name).NotEmpty().Length(2, 25).WithMessage("Name should be minimum 2 char and maximum 25 char");
+            RuleFor(x => x.Price).GreaterThan(0).WithMessage("Price should be greater than 0");
+        }
+    }
+
     public class UpdateProductCommandHandler(IDocumentSession session, ILogger<UpdateProductCommandHandler> logger)
         : ICommandHandler<UpdateProductCommand, UpdateProductResult>
     {
